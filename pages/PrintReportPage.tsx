@@ -1,25 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useReports } from '../context/ReportContext';
+import { supabase } from '../context/ReportContext';
+import { NGReport } from '../types';
 
 const PrintReportPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getReportById } = useReports();
-  const report = id ? getReportById(id) : undefined;
   const navigate = useNavigate();
+  const [report, setReport] = useState<NGReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  const fetchReport = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+        const { data, error } = await supabase.from('reports').select('*').eq('id', id).single();
+        if (error) throw error;
+        if (data) {
+             const fetchedReport = { // Map back to camelCase
+                id: data.id,
+                item: data.item,
+                machineName: data.machine_name,
+                formingMachineName: data.forming_machine_name,
+                model: data.model,
+                lotNo: data.lot_no,
+                qtyNg: data.qty_ng,
+                defectType: data.defect_type,
+                images: data.images,
+                notes: data.notes,
+                status: data.status,
+                rootCause: data.root_cause,
+                action: data.action,
+                pic: data.pic,
+                deadline: data.deadline,
+                reporter: data.reporter,
+                occurrenceDate: data.occurrence_date,
+                shift: data.shift,
+                createdAt: data.created_at,
+                updatedAt: data.updated_at,
+             };
+            setReport(fetchedReport);
+        } else {
+            setError("Không tìm thấy báo cáo.");
+        }
+    } catch (err: any) {
+        console.error("Error fetching report:", err);
+        setError(err.message);
+    } finally {
+        setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const handleConfirmAndPrint = () => {
     window.print();
   };
 
   const handleCancel = () => {
-    navigate('/dashboard');
+    navigate(-1);
   };
 
-  if (!report) {
+  if (loading) {
+     return <div className="text-center text-gray-500">Đang tải dữ liệu in...</div>
+  }
+
+  if (error || !report) {
     return (
       <div className="text-center">
-        <p className="text-red-500">Không tìm thấy báo cáo.</p>
+        <p className="text-red-500">{error || "Không tìm thấy báo cáo."}</p>
         <button onClick={() => navigate('/dashboard')} className="mt-4 py-2 px-4 bg-blue-600 text-white rounded-md">Quay lại Bảng điều khiển</button>
       </div>
     );

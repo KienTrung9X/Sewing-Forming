@@ -12,7 +12,7 @@ declare global {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF4560', '#775DD0'];
 
 const AnalyticsPage: React.FC = () => {
-  const { reports } = useReports();
+  const { reports, loading, error } = useReports();
   const { theme } = useTheme();
   const [isRechartsLoaded, setIsRechartsLoaded] = useState(typeof window.Recharts !== 'undefined');
 
@@ -45,6 +45,29 @@ const AnalyticsPage: React.FC = () => {
     }
     return Object.entries(counts).map(([name, value]) => ({ name, value: value || 0 })).sort((a, b) => b.value - a.value);
   }, [reports]);
+
+  if (loading) {
+    return (
+        <div className="space-y-8">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
+            <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center">
+                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Đang tải dữ liệu thống kê...</h2>
+            </div>
+        </div>
+    );
+  }
+
+  if (error) {
+     return (
+        <div className="space-y-8">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
+            <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center">
+                <h2 className="text-xl font-semibold text-red-500">Lỗi: {error.message}</h2>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Không thể tải dữ liệu thống kê.</p>
+            </div>
+        </div>
+     );
+  }
 
   if (!isRechartsLoaded) {
     return (

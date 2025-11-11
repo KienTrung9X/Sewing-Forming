@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useReports } from '../context/ReportContext';
+import { supabase } from '../context/ReportContext';
 import { NGReport, ReportStatus } from '../types';
 import { REPORT_STATUS_OPTIONS } from '../constants';
 import Modal from '../components/Modal';
@@ -15,8 +16,11 @@ const statusColorMap: Record<ReportStatus, string> = {
 const ReportDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getReportById, updateReport } = useReports();
+  const { updateReport } = useReports();
+  
   const [report, setReport] = useState<NGReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   
   const [status, setStatus] = useState<ReportStatus>(ReportStatus.NEW);
@@ -29,27 +33,70 @@ const ReportDetailPage: React.FC = () => {
   const inputFieldClasses = "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white";
   const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300";
 
+  const fetchReport = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+        const { data, error } = await supabase.from('reports').select('*').eq('id', id).single();
+        if (error) throw error;
+        if (data) {
+             const fetchedReport = { // Map back to camelCase
+                id: data.id,
+                item: data.item,
+                machineName: data.machine_name,
+                formingMachineName: data.forming_machine_name,
+                model: data.model,
+                lotNo: data.lot_no,
+                qtyNg: data.qty_ng,
+                defectType: data.defect_type,
+                images: data.images,
+                notes: data.notes,
+                status: data.status,
+                rootCause: data.root_cause,
+                action: data.action,
+                pic: data.pic,
+                deadline: data.deadline,
+                reporter: data.reporter,
+                occurrenceDate: data.occurrence_date,
+                shift: data.shift,
+                createdAt: data.created_at,
+                updatedAt: data.updated_at,
+             };
+            setReport(fetchedReport);
+            setStatus(fetchedReport.status);
+            setRootCause(fetchedReport.rootCause || '');
+            setAction(fetchedReport.action || '');
+            setPic(fetchedReport.pic || '');
+            setDeadline(fetchedReport.deadline || '');
+        } else {
+            setError("Không tìm thấy báo cáo.");
+        }
+    } catch (err: any) {
+        console.error("Error fetching report:", err);
+        setError(err.message);
+    } finally {
+        setLoading(false);
+    }
+  }, [id]);
+
 
   useEffect(() => {
-    if (id) {
-      const foundReport = getReportById(id);
-      if (foundReport) {
-        setReport(foundReport);
-        setStatus(foundReport.status);
-        setRootCause(foundReport.rootCause || '');
-        setAction(foundReport.action || '');
-        setPic(foundReport.pic || '');
-        setDeadline(foundReport.deadline || '');
-      }
-    }
-  }, [id, getReportById]);
+    fetchReport();
+  }, [fetchReport]);
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (id) {
-      updateReport(id, { status, rootCause, action, pic, deadline });
-      setIsEditing(false);
-      const updatedReport = getReportById(id);
-      if (updatedReport) setReport(updatedReport);
+        const updates = { status, rootCause, action, pic, deadline };
+        try {
+            await updateReport(id, updates);
+            setIsEditing(false);
+            if(report) {
+                setReport({ ...report, ...updates, updatedAt: new Date().toISOString() });
+            }
+        } catch(err) {
+            alert("Lỗi khi cập nhật báo cáo. Vui lòng thử lại.");
+        }
     }
   };
 
@@ -68,6 +115,14 @@ const ReportDetailPage: React.FC = () => {
       setIsEditing(true);
     }
   };
+
+  if (loading) {
+    return <div className="text-center text-gray-500 dark:text-gray-400">Đang tải báo cáo...</div>;
+  }
+  
+  if (error) {
+    return <div className="text-center text-red-500">Lỗi: {error}</div>;
+  }
 
   if (!report) {
     return <div className="text-center text-gray-500 dark:text-gray-400">Không tìm thấy báo cáo.</div>;

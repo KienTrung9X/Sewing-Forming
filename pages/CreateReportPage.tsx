@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useReports } from '../context/ReportContext';
+import { supabase } from '../context/ReportContext';
 import { DefectType } from '../types';
 import ImagePreview from '../components/ImagePreview';
 
 const OTHER_OPTION = "Khác...";
+
+// Helper to convert data URL to File object for uploading
+const dataURLtoFile = (dataurl: string, filename: string): File | null => {
+    const arr = dataurl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) return null;
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+}
 
 const CreateReportPage: React.FC = () => {
   const { addReport, defectTypes, addDefectType, items, addItem } = useReports();
@@ -72,38 +88,58 @@ const CreateReportPage: React.FC = () => {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!model.trim() || !lotNo.trim() || !machineName.trim() || !reporter.trim() || !formingMachineName.trim() || qtyNg <= 0 || images.length === 0) {
       setError('Vui lòng điền đầy đủ các trường bắt buộc: Người nhập lỗi, Item, Tên máy Sewing, Tên máy Forming, Model, Mã lô, Số lượng NG (>0), và tải lên ít nhất 1 ảnh.');
       return;
     }
     
-    let finalItem = item;
-    if (item === OTHER_OPTION) {
-      if (!customItem.trim()) {
-        setError('Vui lòng nhập mô tả cho Item "Khác".');
-        return;
-      }
-      finalItem = customItem.trim();
-      addItem(finalItem);
-    }
-
-    let finalDefectType = defectType;
-    if (defectType === DefectType.OTHER) {
-        if (!customDefectType.trim()) {
-            setError('Vui lòng nhập mô tả cho loại lỗi "Khác".');
-            return;
-        }
-        finalDefectType = customDefectType.trim();
-        addDefectType(finalDefectType);
-    }
-
     setError('');
     setIsSubmitting(true);
 
     try {
-      const newReport = addReport({
+        let finalItem = item;
+        if (item === OTHER_OPTION) {
+          if (!customItem.trim()) {
+            setError('Vui lòng nhập mô tả cho Item "Khác".');
+            setIsSubmitting(false);
+            return;
+          }
+          finalItem = customItem.trim();
+          await addItem(finalItem);
+        }
+
+        let finalDefectType = defectType;
+        if (defectType === DefectType.OTHER) {
+            if (!customDefectType.trim()) {
+                setError('Vui lòng nhập mô tả cho loại lỗi "Khác".');
+                setIsSubmitting(false);
+                return;
+            }
+            finalDefectType = customDefectType.trim();
+            await addDefectType(finalDefectType);
+        }
+
+      // 1. Upload images to Supabase Storage
+      const imageUrls: string[] = [];
+      for (const imageBase64 of images) {
+          const file = dataURLtoFile(imageBase64, `report-image-${Date.now()}.png`);
+          if (!file) continue;
+          
+          const filePath = `public/${file.name}`;
+          const { error: uploadError } = await supabase.storage.from('report-images').upload(filePath, file);
+
+          if (uploadError) {
+              throw new Error(`Lỗi tải ảnh lên: ${uploadError.message}`);
+          }
+          
+          const { data: publicUrlData } = supabase.storage.from('report-images').getPublicUrl(filePath);
+          imageUrls.push(publicUrlData.publicUrl);
+      }
+
+      // 2. Add report with image URLs to the database
+      const newReport = await addReport({
         item: finalItem,
         machineName,
         formingMachineName,
@@ -111,19 +147,19 @@ const CreateReportPage: React.FC = () => {
         lotNo,
         qtyNg,
         defectType: finalDefectType,
-        images,
+        images: imageUrls,
         notes,
         reporter,
         occurrenceDate,
         shift,
       });
-      setTimeout(() => {
-        setIsSubmitting(false);
-        navigate(`/report/${newReport.id}`);
-      }, 500);
-    } catch (err) {
+
+      setIsSubmitting(false);
+      navigate(`/report/${newReport.id}`);
+
+    } catch (err: any) {
       console.error(err);
-      setError('Đã có lỗi xảy ra khi tạo báo cáo.');
+      setError(`Đã có lỗi xảy ra khi tạo báo cáo: ${err.message}`);
       setIsSubmitting(false);
     }
   };

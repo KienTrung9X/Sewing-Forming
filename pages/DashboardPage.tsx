@@ -12,7 +12,7 @@ const statusColorMap: Record<ReportStatus, string> = {
 };
 
 const DashboardPage: React.FC = () => {
-  const { reports, defectTypes, items } = useReports();
+  const { reports, defectTypes, items, loading, error } = useReports();
   const navigate = useNavigate();
   const [filterItem, setFilterItem] = useState<string>('');
   const [filterDefect, setFilterDefect] = useState<string>('');
@@ -33,6 +33,14 @@ const DashboardPage: React.FC = () => {
   };
 
   const inputClasses = "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-slate-700 dark:border-slate-600 dark:text-white";
+
+  if (loading) {
+    return <div className="text-center text-gray-500 dark:text-gray-400">Đang tải dữ liệu...</div>
+  }
+  
+  if (error) {
+    return <div className="text-center text-red-500">Lỗi khi tải dữ liệu: {error.message}. Vui lòng kiểm tra lại kết nối và cấu hình Supabase.</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -87,7 +95,9 @@ const DashboardPage: React.FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-bold">{report.qtyNg}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{report.defectType}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <img src={report.images[0]} alt="Defect" className="h-10 w-10 rounded-md object-cover cursor-pointer" onClick={(e) => { e.stopPropagation(); setModalImage(report.images[0]); }} />
+                                {report.images && report.images.length > 0 && (
+                                  <img src={report.images[0]} alt="Defect" className="h-10 w-10 rounded-md object-cover cursor-pointer" onClick={(e) => { e.stopPropagation(); setModalImage(report.images[0]); }} />
+                                )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColorMap[report.status]}`}>
@@ -119,7 +129,9 @@ const DashboardPage: React.FC = () => {
                             <p className="text-gray-700 dark:text-gray-300"><strong>Loại lỗi:</strong> {report.defectType}</p>
                             <p className="text-gray-700 dark:text-gray-300"><strong>Số lượng NG:</strong> <span className="text-red-500 font-bold">{report.qtyNg}</span></p>
                         </div>
-                        <img src={report.images[0]} alt="Defect" className="h-16 w-16 rounded-md object-cover cursor-pointer" onClick={(e) => { e.stopPropagation(); setModalImage(report.images[0]); }}/>
+                         {report.images && report.images.length > 0 && (
+                            <img src={report.images[0]} alt="Defect" className="h-16 w-16 rounded-md object-cover cursor-pointer" onClick={(e) => { e.stopPropagation(); setModalImage(report.images[0]); }}/>
+                         )}
                     </div>
                     <div className="mt-2 text-right text-xs text-gray-400 dark:text-gray-500">
                         {report.shift} - {new Date(report.occurrenceDate).toLocaleDateString()} bởi {report.reporter}
