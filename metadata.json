@@ -1,0 +1,5 @@
+{
+  "name": "NG Defect Management App",
+  "description": "A web application to report, track, and analyze 'Not Good' (NG) products in a manufacturing process, streamlining communication between Sewing and Forming departments.",
+  "requestFramePermissions": []
+}
