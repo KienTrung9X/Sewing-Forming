@@ -39,7 +39,13 @@ const DashboardPage: React.FC = () => {
   }
   
   if (error) {
-    return <div className="text-center text-red-500">Lỗi khi tải dữ liệu: {error.message}. Vui lòng kiểm tra lại kết nối và cấu hình Supabase.</div>
+    return (
+      <div className="max-w-2xl mx-auto my-10 p-6 bg-red-50 dark:bg-red-900/30 border border-red-400 dark:border-red-600 rounded-lg text-center">
+        <h2 className="text-xl font-bold text-red-800 dark:text-red-200">Đã xảy ra lỗi</h2>
+        <p className="mt-2 text-red-700 dark:text-red-300">{error}</p>
+        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">Vui lòng kiểm tra lại thông tin cấu hình Supabase trong file `context/ReportContext.tsx` và chắc chắn rằng bạn có kết nối mạng.</p>
+      </div>
+    );
   }
 
   return (

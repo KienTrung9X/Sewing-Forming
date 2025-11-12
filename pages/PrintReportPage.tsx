@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../context/ReportContext';
+import { useReports } from '../context/ReportContext';
 import { NGReport } from '../types';
 
 const PrintReportPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { supabase } = useReports();
   const [report, setReport] = useState<NGReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
 
   const fetchReport = useCallback(async () => {
-    if (!id) return;
+    if (!id || !supabase) return;
     setLoading(true);
     setError(null);
     try {
@@ -51,7 +52,7 @@ const PrintReportPage: React.FC = () => {
     } finally {
         setLoading(false);
     }
-  }, [id]);
+  }, [id, supabase]);
 
   useEffect(() => {
     fetchReport();

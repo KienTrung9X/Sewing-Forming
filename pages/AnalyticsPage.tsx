@@ -61,9 +61,9 @@ const AnalyticsPage: React.FC = () => {
      return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
-            <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center">
-                <h2 className="text-xl font-semibold text-red-500">Lỗi: {error.message}</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">Không thể tải dữ liệu thống kê.</p>
+            <div className="max-w-2xl mx-auto my-10 p-6 bg-red-50 dark:bg-red-900/30 border border-red-400 dark:border-red-600 rounded-lg text-center">
+              <h2 className="text-xl font-bold text-red-800 dark:text-red-200">Không thể tải dữ liệu thống kê</h2>
+              <p className="mt-2 text-red-700 dark:text-red-300">{error}</p>
             </div>
         </div>
      );

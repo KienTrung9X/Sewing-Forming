@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useReports } from '../context/ReportContext';
-import { supabase } from '../context/ReportContext';
-import { DefectType } from '../types';
 import ImagePreview from '../components/ImagePreview';
 
-const OTHER_OPTION = "Khác...";
+const ADD_NEW_OPTION = "ADD_NEW";
 
 // Helper to convert data URL to File object for uploading
 const dataURLtoFile = (dataurl: string, filename: string): File | null => {
@@ -23,7 +21,7 @@ const dataURLtoFile = (dataurl: string, filename: string): File | null => {
 }
 
 const CreateReportPage: React.FC = () => {
-  const { addReport, defectTypes, addDefectType, items, addItem } = useReports();
+  const { addReport, defectTypes, addDefectType, items, addItem, supabase } = useReports();
   const navigate = useNavigate();
 
   const [reporter, setReporter] = useState('');
@@ -76,14 +74,14 @@ const CreateReportPage: React.FC = () => {
   
   const handleItemChange = (value: string) => {
     setItem(value);
-    if (value !== OTHER_OPTION) {
+    if (value !== ADD_NEW_OPTION) {
         setCustomItem('');
     }
   }
 
   const handleDefectTypeChange = (value: string) => {
     setDefectType(value);
-    if (value !== DefectType.OTHER) {
+    if (value !== ADD_NEW_OPTION) {
         setCustomDefectType('');
     }
   }
@@ -95,14 +93,19 @@ const CreateReportPage: React.FC = () => {
       return;
     }
     
+    if (!supabase) {
+        setError('Lỗi kết nối: Supabase client chưa sẵn sàng. Vui lòng kiểm tra lại cấu hình.');
+        return;
+    }
+
     setError('');
     setIsSubmitting(true);
 
     try {
         let finalItem = item;
-        if (item === OTHER_OPTION) {
+        if (item === ADD_NEW_OPTION) {
           if (!customItem.trim()) {
-            setError('Vui lòng nhập mô tả cho Item "Khác".');
+            setError('Vui lòng nhập mô tả cho Item mới.');
             setIsSubmitting(false);
             return;
           }
@@ -111,9 +114,9 @@ const CreateReportPage: React.FC = () => {
         }
 
         let finalDefectType = defectType;
-        if (defectType === DefectType.OTHER) {
+        if (defectType === ADD_NEW_OPTION) {
             if (!customDefectType.trim()) {
-                setError('Vui lòng nhập mô tả cho loại lỗi "Khác".');
+                setError('Vui lòng nhập mô tả cho loại lỗi mới.');
                 setIsSubmitting(false);
                 return;
             }
@@ -211,9 +214,9 @@ const CreateReportPage: React.FC = () => {
             <label htmlFor="item" className={labelClasses}>Item <span className="text-red-500">*</span></label>
             <select id="item" value={item} onChange={e => handleItemChange(e.target.value)} className={inputFieldClasses}>
               {items.map(i => <option key={i} value={i}>{i}</option>)}
-              <option value={OTHER_OPTION}>{OTHER_OPTION}</option>
+              <option value={ADD_NEW_OPTION}>Khác (Thêm mới)...</option>
             </select>
-            {item === OTHER_OPTION && (
+            {item === ADD_NEW_OPTION && (
               <div className="mt-4">
                 <label htmlFor="customItem" className={labelClasses}>Nhập Item mới <span className="text-red-500">*</span></label>
                 <input type="text" id="customItem" value={customItem} onChange={e => setCustomItem(e.target.value)} className={inputFieldClasses} required />
@@ -244,10 +247,11 @@ const CreateReportPage: React.FC = () => {
             <label htmlFor="defectType" className={labelClasses}>Loại lỗi <span className="text-red-500">*</span></label>
             <select id="defectType" value={defectType} onChange={e => handleDefectTypeChange(e.target.value)} className={inputFieldClasses}>
               {defectTypes.map(type => <option key={type} value={type}>{type}</option>)}
+              <option value={ADD_NEW_OPTION}>Khác (Thêm mới)...</option>
             </select>
-            {defectType === DefectType.OTHER && (
+            {defectType === ADD_NEW_OPTION && (
                 <div className="mt-4">
-                    <label htmlFor="customDefectType" className={labelClasses}>Mô tả loại lỗi khác <span className="text-red-500">*</span></label>
+                    <label htmlFor="customDefectType" className={labelClasses}>Mô tả loại lỗi mới <span className="text-red-500">*</span></label>
                     <input 
                         type="text" 
                         id="customDefectType" 

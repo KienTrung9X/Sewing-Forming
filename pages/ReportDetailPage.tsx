@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useReports } from '../context/ReportContext';
-import { supabase } from '../context/ReportContext';
 import { NGReport, ReportStatus } from '../types';
 import { REPORT_STATUS_OPTIONS } from '../constants';
 import Modal from '../components/Modal';
@@ -16,7 +15,7 @@ const statusColorMap: Record<ReportStatus, string> = {
 const ReportDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { updateReport } = useReports();
+  const { updateReport, supabase } = useReports();
   
   const [report, setReport] = useState<NGReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +33,7 @@ const ReportDetailPage: React.FC = () => {
   const labelClasses = "block text-sm font-medium text-gray-700 dark:text-gray-300";
 
   const fetchReport = useCallback(async () => {
-    if (!id) return;
+    if (!id || !supabase) return;
     setLoading(true);
     setError(null);
     try {
@@ -78,7 +77,7 @@ const ReportDetailPage: React.FC = () => {
     } finally {
         setLoading(false);
     }
-  }, [id]);
+  }, [id, supabase]);
 
 
   useEffect(() => {
