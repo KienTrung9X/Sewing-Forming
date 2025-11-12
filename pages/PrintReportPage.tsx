@@ -28,6 +28,7 @@ const PrintReportPage: React.FC = () => {
                 model: data.model,
                 lotNo: data.lot_no,
                 qtyNg: data.qty_ng,
+                unit: data.unit,
                 defectType: data.defect_type,
                 images: data.images,
                 notes: data.notes,
@@ -88,12 +89,12 @@ const PrintReportPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-lg">
             <div><strong>Item:</strong> {report.item}</div>
-            <div><strong>Model:</strong> {report.model}</div>
+            <div><strong>PR Sewing:</strong> {report.model}</div>
             <div><strong>Tên máy Sewing:</strong> {report.machineName}</div>
-            <div><strong>Mã lô Forming:</strong> {report.lotNo}</div>
+            <div><strong>PR Forming:</strong> {report.lotNo}</div>
             <div><strong>Tên máy Forming:</strong> {report.formingMachineName}</div>
-            <div><strong>Loại lỗi:</strong> {report.defectType}</div>
-            <div className="font-bold text-red-600"><strong>Số lượng NG:</strong> {report.qtyNg}</div>
+            <div><strong>loại lỗi Element:</strong> {report.defectType}</div>
+            <div className="font-bold text-red-600"><strong>Số lượng NG:</strong> {report.qtyNg} {report.unit}</div>
             <div><strong>Người báo:</strong> {report.reporter}</div>
             <div><strong>Ngày phát sinh:</strong> {new Date(report.occurrenceDate).toLocaleDateString()}</div>
             <div><strong>Ca phát sinh:</strong> {report.shift}</div>
@@ -108,6 +109,7 @@ const PrintReportPage: React.FC = () => {
               ))}
             </div>
              {report.notes && <div className="mt-4"><strong className="text-lg">Ghi chú:</strong><p className="text-md mt-1">{report.notes}</p></div>}
+            {report.action && <div className="mt-4"><strong className="text-lg">Hành động khắc phục:</strong><p className="text-md mt-1">{report.action}</p></div>}
           </div>
         </div>
       </div>

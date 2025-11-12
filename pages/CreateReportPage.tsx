@@ -34,6 +34,7 @@ const CreateReportPage: React.FC = () => {
   const [model, setModel] = useState('');
   const [lotNo, setLotNo] = useState('');
   const [qtyNg, setQtyNg] = useState<number>(1);
+  const [unit, setUnit] = useState<'KG' | 'M'>('KG');
   const [defectType, setDefectType] = useState(defectTypes[0] || '');
   const [customDefectType, setCustomDefectType] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -149,6 +150,7 @@ const CreateReportPage: React.FC = () => {
         model,
         lotNo,
         qtyNg,
+        unit,
         defectType: finalDefectType,
         images: imageUrls,
         notes,
@@ -228,23 +230,32 @@ const CreateReportPage: React.FC = () => {
             <input type="text" id="machineName" value={machineName} onChange={e => setMachineName(e.target.value)} className={inputFieldClasses} required/>
           </div>
           <div>
-            <label htmlFor="model" className={labelClasses}>Model <span className="text-red-500">*</span></label>
+            <label htmlFor="model" className={labelClasses}>PR Sewing <span className="text-red-500">*</span></label>
             <input type="text" id="model" value={model} onChange={e => setModel(e.target.value)} className={inputFieldClasses} required/>
           </div>
           <div>
-            <label htmlFor="lotNo" className={labelClasses}>Mã lô Forming <span className="text-red-500">*</span></label>
+            <label htmlFor="lotNo" className={labelClasses}>PR Forming <span className="text-red-500">*</span></label>
             <input type="text" id="lotNo" value={lotNo} onChange={e => setLotNo(e.target.value)} className={inputFieldClasses} required/>
           </div>
           <div>
             <label htmlFor="formingMachineName" className={labelClasses}>Tên máy Forming <span className="text-red-500">*</span></label>
             <input type="text" id="formingMachineName" value={formingMachineName} onChange={e => setFormingMachineName(e.target.value)} className={inputFieldClasses} required/>
           </div>
-          <div>
-            <label htmlFor="qtyNg" className={labelClasses}>Số lượng NG <span className="text-red-500">*</span></label>
-            <input type="number" id="qtyNg" value={qtyNg} onChange={e => setQtyNg(Number(e.target.value))} className={inputFieldClasses} min="1" required/>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="qtyNg" className={labelClasses}>Số lượng NG <span className="text-red-500">*</span></label>
+              <input type="number" id="qtyNg" value={qtyNg} onChange={e => setQtyNg(Number(e.target.value))} className={inputFieldClasses} min="1" required/>
+            </div>
+            <div>
+              <label htmlFor="unit" className={labelClasses}>Unit</label>
+              <select id="unit" value={unit} onChange={e => setUnit(e.target.value as 'KG' | 'M')} className={inputFieldClasses}>
+                <option value="KG">KG</option>
+                <option value="M">M</option>
+              </select>
+            </div>
           </div>
           <div className="md:col-span-2">
-            <label htmlFor="defectType" className={labelClasses}>Loại lỗi <span className="text-red-500">*</span></label>
+            <label htmlFor="defectType" className={labelClasses}>loại lỗi Element <span className="text-red-500">*</span></label>
             <select id="defectType" value={defectType} onChange={e => handleDefectTypeChange(e.target.value)} className={inputFieldClasses}>
               {defectTypes.map(type => <option key={type} value={type}>{type}</option>)}
               <option value={ADD_NEW_OPTION}>Khác (Thêm mới)...</option>

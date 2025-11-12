@@ -81,10 +81,10 @@ const DashboardPage: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
                 <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Item/Model</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mã Lô / Máy Forming</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Item/PR Sewing</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">PR Forming / Máy Forming</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Số lượng NG</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Loại lỗi</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">loại lỗi Element</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ảnh</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trạng thái</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Người báo / Ngày</th>
@@ -98,7 +98,7 @@ const DashboardPage: React.FC = () => {
                                 <div>{report.lotNo}</div>
                                 <div className="text-xs">{report.formingMachineName}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-bold">{report.qtyNg}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 font-bold">{report.qtyNg} {report.unit}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{report.defectType}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 {report.images && report.images.length > 0 && (
@@ -106,7 +106,7 @@ const DashboardPage: React.FC = () => {
                                 )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColorMap[report.status]}`}>
+                                <span className={`px-2 inline-flex text-xs leading-5 font-bold rounded-full ${statusColorMap[report.status]}`}>
                                     {report.status}
                                 </span>
                             </td>
@@ -132,8 +132,8 @@ const DashboardPage: React.FC = () => {
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                         <div className="text-sm">
-                            <p className="text-gray-700 dark:text-gray-300"><strong>Loại lỗi:</strong> {report.defectType}</p>
-                            <p className="text-gray-700 dark:text-gray-300"><strong>Số lượng NG:</strong> <span className="text-red-500 font-bold">{report.qtyNg}</span></p>
+                            <p className="text-gray-700 dark:text-gray-300"><strong>loại lỗi Element:</strong> {report.defectType}</p>
+                            <p className="text-gray-700 dark:text-gray-300"><strong>Số lượng NG:</strong> <span className="text-red-500 font-bold">{report.qtyNg} {report.unit}</span></p>
                         </div>
                          {report.images && report.images.length > 0 && (
                             <img src={report.images[0]} alt="Defect" className="h-16 w-16 rounded-md object-cover cursor-pointer" onClick={(e) => { e.stopPropagation(); setModalImage(report.images[0]); }}/>

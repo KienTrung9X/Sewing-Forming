@@ -48,6 +48,7 @@ const ReportDetailPage: React.FC = () => {
                 model: data.model,
                 lotNo: data.lot_no,
                 qtyNg: data.qty_ng,
+                unit: data.unit,
                 defectType: data.defect_type,
                 images: data.images,
                 notes: data.notes,
@@ -131,7 +132,9 @@ const ReportDetailPage: React.FC = () => {
     <div className="max-w-4xl mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg shadow-md">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Chi tiết Báo cáo: {report.id}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+    Chi tiết Báo cáo Lỗi NG - {report.item} - {new Date(report.occurrenceDate).toLocaleDateString()}
+</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Tạo phiếu lúc {new Date(report.createdAt).toLocaleString()}</p>
         </div>
         <span className={`px-4 py-1 text-sm font-semibold rounded-full ${statusColorMap[report.status]}`}>
@@ -143,14 +146,14 @@ const ReportDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 border-t border-gray-200 dark:border-slate-700 pt-6">
         <div className="space-y-4">
           <InfoItem label="Item" value={report.item} />
-          <InfoItem label="Model" value={report.model} />
-          <InfoItem label="Mã lô Forming" value={report.lotNo} />
+          <InfoItem label="PR Sewing" value={report.model} />
+          <InfoItem label="PR Forming" value={report.lotNo} />
           <InfoItem label="Tên máy Forming" value={report.formingMachineName} />
-          <InfoItem label="Số lượng NG" value={report.qtyNg.toString()} highlight />
+          <InfoItem label="Số lượng NG" value={`${report.qtyNg} ${report.unit}`} highlight />
         </div>
         <div className="space-y-4">
           <InfoItem label="Tên máy Sewing" value={report.machineName} />
-          <InfoItem label="Loại lỗi" value={report.defectType} />
+          <InfoItem label="loại lỗi Element" value={report.defectType} />
           <InfoItem label="Người báo cáo" value={report.reporter} />
           <InfoItem label="Ngày phát sinh" value={new Date(report.occurrenceDate).toLocaleDateString()} />
           <InfoItem label="Ca phát sinh" value={report.shift} />

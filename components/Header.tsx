@@ -32,7 +32,14 @@ const Header: React.FC = () => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600 dark:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="font-bold text-xl ml-2 text-gray-800 dark:text-gray-100">Quản lý Lỗi NG</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl ml-2 text-gray-800 dark:text-gray-100">
+                Quản lý Lỗi NG giữa Sewing và Fomring
+              </span>
+              <span className="text-xs ml-2 text-gray-500 dark:text-gray-400">
+                Design by Kiên
+              </span>
+            </div>
           </div>
           <div className="flex items-center">
              <nav className="hidden md:flex items-center space-x-4">

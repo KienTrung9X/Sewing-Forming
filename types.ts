@@ -24,6 +24,7 @@ export interface NGReport {
   model: string;
   lotNo: string;
   qtyNg: number;
+  unit: 'KG' | 'M';
   defectType: string; 
   images: string[]; 
   notes?: string;
