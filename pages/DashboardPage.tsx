@@ -17,16 +17,20 @@ const DashboardPage: React.FC = () => {
   const [filterItem, setFilterItem] = useState<string>('');
   const [filterDefect, setFilterDefect] = useState<string>('');
   const [filterDate, setFilterDate] = useState<string>('');
+  // const [filterMachine, setFilterMachine] = useState<string>(''); // Temporarily removed
   const [modalImage, setModalImage] = useState<string | null>(null);
+
+  // const machineNames = useMemo(() => [...new Set(reports.map(r => r.machineName))], [reports]); // Temporarily removed
 
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
       const itemMatch = filterItem ? report.item === filterItem : true;
       const defectMatch = filterDefect ? report.defectType === filterDefect : true;
       const dateMatch = filterDate ? report.occurrenceDate === filterDate : true;
-      return itemMatch && defectMatch && dateMatch;
+      // const machineMatch = filterMachine ? report.machineName === filterMachine : true; // Temporarily removed
+      return itemMatch && defectMatch && dateMatch; // Simplified
     });
-  }, [reports, filterItem, filterDefect, filterDate]);
+  }, [reports, filterItem, filterDefect, filterDate]); // Simplified dependencies
 
   const viewReportDetails = (id: string) => {
     navigate(`/report/${id}`);
@@ -53,7 +57,7 @@ const DashboardPage: React.FC = () => {
       <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng điều khiển Lỗi NG</h1>
 
       {/* Filters */}
-      <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Changed to 3 columns */}
         <div>
           <label htmlFor="itemFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lọc theo Item</label>
           <select id="itemFilter" value={filterItem} onChange={e => setFilterItem(e.target.value)} className={inputClasses}>
@@ -72,6 +76,14 @@ const DashboardPage: React.FC = () => {
           <label htmlFor="dateFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lọc theo ngày phát sinh</label>
           <input type="date" id="dateFilter" value={filterDate} onChange={e => setFilterDate(e.target.value)} className={inputClasses}/>
         </div>
+        {/* Temporarily removed machine filter */}
+        {/* <div>
+          <label htmlFor="machineFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lọc theo máy</label>
+          <select id="machineFilter" value={filterMachine} onChange={e => setFilterMachine(e.target.value)} className={inputClasses}>
+            <option value="">Tất cả máy</option>
+            {machineNames.map(machine => <option key={machine} value={machine}>{machine}</option>)}
+          </select>
+        </div> */}
       </div>
       
       {/* Report List */}

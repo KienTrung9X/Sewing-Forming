@@ -14,6 +14,12 @@ const MoonIcon = () => (
   </svg>
 );
 
+const BellIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+);
+
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
@@ -53,6 +59,13 @@ const Header: React.FC = () => {
               aria-label="Toggle theme"
             >
               {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+            </button>
+            <button
+              className="ml-2 p-2 rounded-full text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-slate-800 relative"
+              aria-label="Notifications"
+            >
+              <BellIcon />
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-600 ring-2 ring-white dark:ring-slate-800"></span>
             </button>
           </div>
         </div>

@@ -60,6 +60,17 @@ const AnalyticsPage: React.FC = () => {
     });
   }, [reports]);
 
+  const defectsByShift = useMemo(() => {
+    const counts: { [key: string]: { [unit: string]: number } } = {};
+    for (const report of reports) {
+      if (!counts[report.shift]) {
+        counts[report.shift] = {};
+      }
+      counts[report.shift][report.unit] = (counts[report.shift][report.unit] || 0) + report.qtyNg;
+    }
+    return Object.entries(counts).map(([name, quantities]) => ({ name, quantities }));
+  }, [reports]);
+
   if (loading) {
     return (
         <div className="space-y-8">
@@ -119,6 +130,13 @@ const AnalyticsPage: React.FC = () => {
       value: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
     }));
   }, [defectsByItem]);
+
+  const defectsByShiftForChart = useMemo(() => {
+    return defectsByShift.map(item => ({
+      name: item.name,
+      qty: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
+    }));
+  }, [defectsByShift]);
 
   return (
     <div className="space-y-8">
@@ -204,6 +222,21 @@ const AnalyticsPage: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md space-y-6 lg:col-span-2">
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Số lượng NG theo Ca</h2>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+              <BarChart data={defectsByShiftForChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor}/>
+                <XAxis dataKey="name" tick={{ fill: tickColor }} />
+                <YAxis allowDecimals={false} tick={{ fill: tickColor }}/>
+                <Tooltip contentStyle={tooltipStyle} cursor={{fill: 'rgba(128, 128, 128, 0.1)'}}/>
+                <Legend wrapperStyle={{ color: tickColor }}/>
+                <Bar dataKey="qty" name="Số lượng NG" fill="#FF8042" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

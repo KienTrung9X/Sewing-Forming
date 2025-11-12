@@ -82,14 +82,14 @@ export const ReportProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       
       const formattedReports = reportsRes.data.map((r: any) => ({
         id: r.id,
-        item: r.item,
+        item: r.item || 'Unknown Item',
         machineName: r.machine_name,
         formingMachineName: r.forming_machine_name,
         model: r.model,
         lotNo: r.lot_no,
         qtyNg: r.qty_ng,
-        unit: r.unit,
-        defectType: r.defect_type,
+        unit: r.unit || 'KG',
+        defectType: r.defect_type || 'Unknown Defect',
         images: r.images,
         notes: r.notes,
         status: r.status,
@@ -99,7 +99,7 @@ export const ReportProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         deadline: r.deadline,
         reporter: r.reporter,
         occurrenceDate: r.occurrence_date,
-        shift: r.shift,
+        shift: r.shift || 'Unknown Shift',
         createdAt: r.created_at,
         updatedAt: r.updated_at,
       }));
