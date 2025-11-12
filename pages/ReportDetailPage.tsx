@@ -137,7 +137,7 @@ const ReportDetailPage: React.FC = () => {
 </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Tạo phiếu lúc {new Date(report.createdAt).toLocaleString()}</p>
         </div>
-        <span className={`px-4 py-1 text-sm font-semibold rounded-full ${statusColorMap[report.status]}`}>
+        <span className={`px-4 py-1 text-sm font-bold rounded-full ${statusColorMap[report.status]}`}>
             {report.status}
         </span>
       </div>

@@ -128,7 +128,7 @@ const DashboardPage: React.FC = () => {
                             <p className="text-sm font-bold text-gray-800 dark:text-gray-100">{report.item} / {report.model}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Lô: {report.lotNo} / Máy: {report.formingMachineName}</p>
                         </div>
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColorMap[report.status]}`}>{report.status}</span>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-bold rounded-full ${statusColorMap[report.status]}`}>{report.status}</span>
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                         <div className="text-sm">

@@ -31,19 +31,33 @@ const AnalyticsPage: React.FC = () => {
 
 
   const defectsByType = useMemo(() => {
-    const counts: { [key: string]: number } = {};
+    const counts: { [key: string]: { [unit: string]: number } } = {};
     for (const report of reports) {
-      counts[report.defectType] = (counts[report.defectType] || 0) + report.qtyNg;
+      if (!counts[report.defectType]) {
+        counts[report.defectType] = {};
+      }
+      counts[report.defectType][report.unit] = (counts[report.defectType][report.unit] || 0) + report.qtyNg;
     }
-    return Object.entries(counts).map(([name, value]) => ({ name, qty: value })).sort((a, b) => b.qty - a.qty);
+    return Object.entries(counts).map(([name, quantities]) => ({ name, quantities })).sort((a, b) => {
+      const aTotal = Object.values(a.quantities).reduce((sum, qty) => sum + qty, 0);
+      const bTotal = Object.values(b.quantities).reduce((sum, qty) => sum + qty, 0);
+      return bTotal - aTotal;
+    });
   }, [reports]);
 
   const defectsByItem = useMemo(() => {
-    const counts: { [key: string]: number } = {};
+    const counts: { [key: string]: { [unit: string]: number } } = {};
     for (const report of reports) {
-      counts[report.item] = (counts[report.item] || 0) + report.qtyNg;
+      if (!counts[report.item]) {
+        counts[report.item] = {};
+      }
+      counts[report.item][report.unit] = (counts[report.item][report.unit] || 0) + report.qtyNg;
     }
-    return Object.entries(counts).map(([name, value]) => ({ name, value: value || 0 })).sort((a, b) => b.value - a.value);
+    return Object.entries(counts).map(([name, quantities]) => ({ name, quantities })).sort((a, b) => {
+        const aTotal = Object.values(a.quantities).reduce((sum, qty) => sum + qty, 0);
+        const bTotal = Object.values(b.quantities).reduce((sum, qty) => sum + qty, 0);
+        return bTotal - aTotal;
+    });
   }, [reports]);
 
   if (loading) {
@@ -92,16 +106,30 @@ const AnalyticsPage: React.FC = () => {
     color: theme === 'dark' ? '#ffffff' : '#000000'
   };
 
+  const defectsByTypeForChart = useMemo(() => {
+    return defectsByType.map(item => ({
+      name: item.name,
+      qty: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
+    }));
+  }, [defectsByType]);
+
+  const defectsByItemForChart = useMemo(() => {
+    return defectsByItem.map(item => ({
+      name: item.name,
+      value: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
+    }));
+  }, [defectsByItem]);
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md space-y-6">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Số lượng NG theo Loại lỗi</h2>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Số lượng NG theo loại lỗi Element</h2>
           <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
-              <BarChart data={defectsByType} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <BarChart data={defectsByTypeForChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor}/>
                 <XAxis dataKey="name" tick={{ fill: tickColor }} />
                 <YAxis allowDecimals={false} tick={{ fill: tickColor }}/>
@@ -115,15 +143,17 @@ const AnalyticsPage: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
               <thead className="bg-gray-50 dark:bg-slate-900">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Loại lỗi</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">loại lỗi Element</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tổng số lượng NG</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
                 {defectsByType.map((item) => (
                   <tr key={item.name}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-bold">{item.qty}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{item.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-bold">
+                      {Object.entries(item.quantities).map(([unit, qty]) => `${qty} ${unit}`).join(', ')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -137,7 +167,7 @@ const AnalyticsPage: React.FC = () => {
             <ResponsiveContainer>
               <PieChart>
                 <Pie
-                  data={defectsByItem}
+                  data={defectsByItemForChart}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -146,7 +176,7 @@ const AnalyticsPage: React.FC = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {defectsByItem.map((entry, index) => (
+                  {defectsByItemForChart.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -167,7 +197,9 @@ const AnalyticsPage: React.FC = () => {
                 {defectsByItem.map((item) => (
                   <tr key={item.name}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-bold">{item.value}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-bold">
+                        {Object.entries(item.quantities).map(([unit, qty]) => `${qty} ${unit}`).join(', ')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
