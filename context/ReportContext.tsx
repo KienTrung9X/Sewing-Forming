@@ -10,8 +10,8 @@ import { NGReport, ReportStatus } from '../types';
 // 3. Find your Project URL and your `anon` public key.
 // 4. Paste them into the `supabaseUrl` and `supabaseKey` variables below.
 // =================================================================================
-const supabaseUrl = 'https://ngxyslapfugyvecfrjit.supabase.co'; // <-- PASTE YOUR SUPABASE URL HERE
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5neHlzbGFwZnVneXZlY2Zyaml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MTAzMTEsImV4cCI6MjA3ODQ4NjMxMX0.ALWzTjly2c1Ju91dfvmVi0ciRIoav5iNMmKgO0hrEW0'; // <-- PASTE YOUR SUPABASE ANON KEY HERE
+const supabaseUrl = 'https://tfrofbzqomfdlwzearfj.supabase.co'; // <-- PASTE YOUR SUPABASE URL HERE
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmcm9mYnpxb21mZGx3emVhcmZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0MjQxODgsImV4cCI6MjA3OTAwMDE4OH0.1cgTnUHVgBXvmzIKWc9F8RXrrykU8xI7V9RpTG5C9C4'; // <-- PASTE YOUR SUPABASE ANON KEY HERE
 
 const isSupabaseConfigured = supabaseUrl && supabaseKey && !supabaseUrl.includes('your-project-id') && !supabaseKey.includes('your-anon-key');
 
