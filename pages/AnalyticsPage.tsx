@@ -1,242 +1,127 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useReports } from '../context/ReportContext';
 import { useTheme } from '../context/ThemeContext';
 
-// Recharts is loaded from CDN. We declare its presence on the window object for TypeScript.
-declare global {
-  interface Window {
-    Recharts: any;
-  }
-}
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF4560', '#775DD0'];
+declare const Chart: any;
 
 const AnalyticsPage: React.FC = () => {
   const { reports, loading, error } = useReports();
   const { theme } = useTheme();
-  const [isRechartsLoaded, setIsRechartsLoaded] = useState(typeof window.Recharts !== 'undefined');
-
-  useEffect(() => {
-    if (isRechartsLoaded) return;
-
-    const interval = setInterval(() => {
-      if (typeof window.Recharts !== 'undefined') {
-        setIsRechartsLoaded(true);
-        clearInterval(interval);
-      }
-    }, 100); // Check every 100ms
-
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [isRechartsLoaded]);
+  const defectChartRef = useRef<HTMLCanvasElement>(null);
+  const itemChartRef = useRef<HTMLCanvasElement>(null);
+  const shiftChartRef = useRef<HTMLCanvasElement>(null);
 
 
   const defectsByType = useMemo(() => {
-    const counts: { [key: string]: { [unit: string]: number } } = {};
-    for (const report of reports) {
-      if (!counts[report.defectType]) {
-        counts[report.defectType] = {};
-      }
-      counts[report.defectType][report.unit] = (counts[report.defectType][report.unit] || 0) + report.qtyNg;
-    }
-    return Object.entries(counts).map(([name, quantities]) => ({ name, quantities })).sort((a, b) => {
-      const aTotal = Object.values(a.quantities).reduce((sum, qty) => sum + qty, 0);
-      const bTotal = Object.values(b.quantities).reduce((sum, qty) => sum + qty, 0);
-      return bTotal - aTotal;
-    });
+    const counts: { [key: string]: number } = {};
+    reports.forEach(r => counts[r.defectType] = (counts[r.defectType] || 0) + r.qtyNg);
+    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [reports]);
 
   const defectsByItem = useMemo(() => {
-    const counts: { [key: string]: { [unit: string]: number } } = {};
-    for (const report of reports) {
-      if (!counts[report.item]) {
-        counts[report.item] = {};
-      }
-      counts[report.item][report.unit] = (counts[report.item][report.unit] || 0) + report.qtyNg;
-    }
-    return Object.entries(counts).map(([name, quantities]) => ({ name, quantities })).sort((a, b) => {
-        const aTotal = Object.values(a.quantities).reduce((sum, qty) => sum + qty, 0);
-        const bTotal = Object.values(b.quantities).reduce((sum, qty) => sum + qty, 0);
-        return bTotal - aTotal;
-    });
+    const counts: { [key: string]: number } = {};
+    reports.forEach(r => counts[r.item] = (counts[r.item] || 0) + r.qtyNg);
+    return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
   }, [reports]);
 
   const defectsByShift = useMemo(() => {
-    const counts: { [key: string]: { [unit: string]: number } } = {};
-    for (const report of reports) {
-      if (!counts[report.shift]) {
-        counts[report.shift] = {};
-      }
-      counts[report.shift][report.unit] = (counts[report.shift][report.unit] || 0) + report.qtyNg;
-    }
-    return Object.entries(counts).map(([name, quantities]) => ({ name, quantities }));
+    const counts: { [key: string]: number } = {};
+    reports.forEach(r => counts[r.shift] = (counts[r.shift] || 0) + r.qtyNg);
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [reports]);
 
-  if (loading) {
-    return (
-        <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
-            <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center">
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Đang tải dữ liệu thống kê...</h2>
-            </div>
-        </div>
-    );
-  }
+  useEffect(() => {
+    if (!reports.length || typeof Chart === 'undefined') return;
 
-  if (error) {
-     return (
-        <div className="space-y-8">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
-            <div className="max-w-2xl mx-auto my-10 p-6 bg-red-50 dark:bg-red-900/30 border border-red-400 dark:border-red-600 rounded-lg text-center">
-              <h2 className="text-xl font-bold text-red-800 dark:text-red-200">Không thể tải dữ liệu thống kê</h2>
-              <p className="mt-2 text-red-700 dark:text-red-300">{error}</p>
-            </div>
-        </div>
-     );
-  }
+    const textColor = theme === 'dark' ? '#e2e8f0' : '#1f2937';
+    const gridColor = theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
-  if (!isRechartsLoaded) {
-    return (
-      <div className="space-y-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
-        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md text-center">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Đang tải thư viện biểu đồ...</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Biểu đồ sẽ xuất hiện ở đây. Nếu không, vui lòng tải lại trang.</p>
-        </div>
-      </div>
-    );
-  }
+    if (defectChartRef.current) {
+      const ctx = defectChartRef.current.getContext('2d');
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: defectsByType.map(d => d.name),
+            datasets: [{ label: 'Số lượng NG (KG)', data: defectsByType.map(d => d.value), backgroundColor: '#3b82f6' }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
+        });
+      }
+    }
 
-  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } = window.Recharts;
-  
-  const tickColor = theme === 'dark' ? '#a0aec0' : '#4a5568';
-  const gridColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0';
-  const tooltipStyle = {
-    backgroundColor: theme === 'dark' ? '#2d3748' : '#ffffff',
-    border: '1px solid',
-    borderColor: theme === 'dark' ? '#4a5568' : '#e2e8f0',
-    color: theme === 'dark' ? '#ffffff' : '#000000'
-  };
+    if (itemChartRef.current) {
+      const ctx = itemChartRef.current.getContext('2d');
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: defectsByItem.map(d => d.name),
+            datasets: [{ data: defectsByItem.map(d => d.value), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: textColor } } } }
+        });
+      }
+    }
 
-  const defectsByTypeForChart = useMemo(() => {
-    return defectsByType.map(item => ({
-      name: item.name,
-      qty: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
-    }));
-  }, [defectsByType]);
+    if (shiftChartRef.current) {
+      const ctx = shiftChartRef.current.getContext('2d');
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: defectsByShift.map(d => d.name),
+            datasets: [{ label: 'Số lượng NG (KG)', data: defectsByShift.map(d => d.value), backgroundColor: '#ef4444' }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { color: gridColor } } }, plugins: { legend: { labels: { color: textColor } } } }
+        });
+      }
+    }
+  }, [reports, defectsByType, defectsByItem, defectsByShift, theme]);
 
-  const defectsByItemForChart = useMemo(() => {
-    return defectsByItem.map(item => ({
-      name: item.name,
-      value: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
-    }));
-  }, [defectsByItem]);
+  if (loading) return <div className="text-center text-gray-500 dark:text-gray-400">Đang tải...</div>;
+  if (error) return <div className="text-center text-red-500">Lỗi: {error}</div>;
 
-  const defectsByShiftForChart = useMemo(() => {
-    return defectsByShift.map(item => ({
-      name: item.name,
-      qty: Object.values(item.quantities).reduce((sum, qty) => sum + qty, 0)
-    }));
-  }, [defectsByShift]);
+  const totalNG = reports.reduce((sum, r) => sum + r.qtyNg, 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Bảng Thống Kê</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+          <h3 className="text-sm text-gray-600 dark:text-gray-400">Tổng báo cáo</h3>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{reports.length}</p>
+        </div>
+        <div className="p-6 bg-red-50 dark:bg-red-900/30 rounded-lg">
+          <h3 className="text-sm text-gray-600 dark:text-gray-400">Tổng NG</h3>
+          <p className="text-3xl font-bold text-red-600 dark:text-red-400">{totalNG} KG</p>
+        </div>
+        <div className="p-6 bg-green-50 dark:bg-green-900/30 rounded-lg">
+          <h3 className="text-sm text-gray-600 dark:text-gray-400">Loại lỗi</h3>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{defectsByType.length}</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md space-y-6">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Số lượng NG theo loại lỗi Element</h2>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <BarChart data={defectsByTypeForChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor}/>
-                <XAxis dataKey="name" tick={{ fill: tickColor }} />
-                <YAxis allowDecimals={false} tick={{ fill: tickColor }}/>
-                <Tooltip contentStyle={tooltipStyle} cursor={{fill: 'rgba(128, 128, 128, 0.1)'}}/>
-                <Legend wrapperStyle={{ color: tickColor }}/>
-                <Bar dataKey="qty" name="Số lượng NG" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
-              <thead className="bg-gray-50 dark:bg-slate-900">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">loại lỗi Element</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tổng số lượng NG</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
-                {defectsByType.map((item) => (
-                  <tr key={item.name}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-gray-100">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-bold">
-                      {Object.entries(item.quantities).map(([unit, qty]) => `${qty} ${unit}`).join(', ')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Số lượng NG theo loại lỗi</h2>
+          <div style={{ height: '300px' }}>
+            <canvas ref={defectChartRef}></canvas>
           </div>
         </div>
 
-        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md space-y-6">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Phân bổ NG theo Item</h2>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie
-                  data={defectsByItemForChart}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }: { name: string; percent: number }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {defectsByItemForChart.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ color: tickColor }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
-              <thead className="bg-gray-50 dark:bg-slate-900">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Item</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tổng số lượng NG</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
-                {defectsByItem.map((item) => (
-                  <tr key={item.name}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-bold">
-                        {Object.entries(item.quantities).map(([unit, qty]) => `${qty} ${unit}`).join(', ')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Top 10 Item có NG nhiều nhất</h2>
+          <div style={{ height: '300px' }}>
+            <canvas ref={itemChartRef}></canvas>
           </div>
         </div>
-        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow-md space-y-6 lg:col-span-2">
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Số lượng NG theo Ca</h2>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <BarChart data={defectsByShiftForChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor}/>
-                <XAxis dataKey="name" tick={{ fill: tickColor }} />
-                <YAxis allowDecimals={false} tick={{ fill: tickColor }}/>
-                <Tooltip contentStyle={tooltipStyle} cursor={{fill: 'rgba(128, 128, 128, 0.1)'}}/>
-                <Legend wrapperStyle={{ color: tickColor }}/>
-                <Bar dataKey="qty" name="Số lượng NG" fill="#FF8042" />
-              </BarChart>
-            </ResponsiveContainer>
+
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-lg shadow lg:col-span-2">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Số lượng NG theo Ca</h2>
+          <div style={{ height: '300px' }}>
+            <canvas ref={shiftChartRef}></canvas>
           </div>
         </div>
       </div>
